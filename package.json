@@ -1,0 +1,20 @@
+{
+  "name": "sarah",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "browserify ./src/index.js -o ./dist/sarah.js -t [ babelify --presets [ es2015 ] ]",
+    "build": "browserify ./src/index.js -o ./dist/sarah.min.js -t [ babelify --presets [ es2015 minify ] ]"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-minify": "^0.2.0",
+    "babelify": "^8.0.0",
+    "browserify": "^15.2.0"
+  },
+  "dependencies": {
+    "lodash": "^4.17.5"
+  }
+}

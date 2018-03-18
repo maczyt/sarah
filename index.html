@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <script src="./dist/sarah.js"></script>
+</head>
+
+<body>
+  <div id="app">
+    <p s-class-red="error" s-text="hello"></p>
+    <ul>
+      <li s-repeat-todo="todos">
+        <span s-text="title"></span>
+      </li>
+    </ul>
+  </div>
+  <script>
+    const vm = new Sarah({
+      el: '#app',
+      scope: {
+        msg: 'hello',
+        hello: 'WHWHWHW',
+        todos: [{
+            title: 'make this shit work',
+            done: false
+          },
+          {
+            title: 'make this shit kinda work',
+            done: true
+          }
+        ],
+        changeMessage: function () {
+          console.log('click')
+          app.scope.msg = 'hola'
+        }
+      }
+    })
+  </script>
+</body>
+
+</html>
