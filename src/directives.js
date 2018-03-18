@@ -1,6 +1,15 @@
 import watchArray from "./watchArray";
 import Sarah from "./sarah";
 
+const mutationHandlers = {
+  push(m) {
+    m.args.forEach((data, i) => {
+      const sarah = this.buildItem(data, this.collection.length + i);
+      this.container.insertBefore(sarah.el, this.marker);
+    });
+  }
+};
+
 export default {
   text(value) {
     this.el.textContent = value || "";
@@ -22,15 +31,17 @@ export default {
       this.childSarahs = [];
     },
     update(collection) {
+      this.collection = collection;
       watchArray(collection, this.mutate.bind(this));
       collection.forEach((item, i) => {
-        this.childSarahs.push(this.buildItem(item, i, collection));
+        this.childSarahs.push(this.buildItem(item, i));
       });
     },
-    mutate(mutation, h, w, k) {
-      console.log(mutation);
+    mutate(mutation) {
+      mutationHandlers[mutation.event].call(this, mutation);
+      // console.log("mutation", mutation);
     },
-    buildItem(data, index, collection) {
+    buildItem(data, index) {
       const node = this.el.cloneNode(true);
       const spore = new Sarah({
         el: node,
@@ -39,28 +50,27 @@ export default {
         parentScope: this.vm.scope
       });
       this.container.insertBefore(node, this.marker);
-      collection[index] = spore.scope;
+      this.collection[index] = spore.scope;
       return spore;
     }
   },
   on: {
-    update(el, handler, event, directive) {
-      if (!directive.handlers) {
-        directive.handlers = {};
-      }
-      const handlers = directive.handlers;
+    update(handler) {
+      const event = this.arg;
+      const handlers = (this.handlers = this.handlers || {});
       if (handlers[event]) {
-        el.removeEventListener(event, handlers[event]);
+        this.el.removeEventListener(event, handlers[event]);
       }
       if (handler) {
-        handler = handler.bind(el);
-        el.addEventListener(event, handler);
+        handler = handler.bind(this.vm);
+        this.el.addEventListener(event, handler);
         handlers[event] = handler;
       }
     },
-    unbind(el, event, directive) {
-      if (directive.handlers) {
-        el.removeEventListener(event, directive.handlers[event]);
+    unbind() {
+      const event = this.arg;
+      if (this.handlers) {
+        this.el.removeEventListener(event, this.handlers[event]);
       }
     }
   }

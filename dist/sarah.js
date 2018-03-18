@@ -87,6 +87,17 @@ var _sarah2 = _interopRequireDefault(_sarah);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+var mutationHandlers = {
+  push: function push(m) {
+    var _this = this;
+
+    m.args.forEach(function (data, i) {
+      var sarah = _this.buildItem(data, _this.collection.length + i);
+      _this.container.insertBefore(sarah.el, _this.marker);
+    });
+  }
+};
+
 exports.default = {
   text: function text(value) {
     this.el.textContent = value || "";
@@ -109,17 +120,19 @@ exports.default = {
       this.childSarahs = [];
     },
     update: function update(collection) {
-      var _this = this;
+      var _this2 = this;
 
+      this.collection = collection;
       (0, _watchArray2.default)(collection, this.mutate.bind(this));
       collection.forEach(function (item, i) {
-        _this.childSarahs.push(_this.buildItem(item, i, collection));
+        _this2.childSarahs.push(_this2.buildItem(item, i));
       });
     },
-    mutate: function mutate(mutation, h, w, k) {
-      console.log(mutation);
+    mutate: function mutate(mutation) {
+      mutationHandlers[mutation.event].call(this, mutation);
+      // console.log("mutation", mutation);
     },
-    buildItem: function buildItem(data, index, collection) {
+    buildItem: function buildItem(data, index) {
       var node = this.el.cloneNode(true);
       var spore = new _sarah2.default({
         el: node,
@@ -128,28 +141,27 @@ exports.default = {
         parentScope: this.vm.scope
       });
       this.container.insertBefore(node, this.marker);
-      collection[index] = spore.scope;
+      this.collection[index] = spore.scope;
       return spore;
     }
   },
   on: {
-    update: function update(el, handler, event, directive) {
-      if (!directive.handlers) {
-        directive.handlers = {};
-      }
-      var handlers = directive.handlers;
+    update: function update(handler) {
+      var event = this.arg;
+      var handlers = this.handlers = this.handlers || {};
       if (handlers[event]) {
-        el.removeEventListener(event, handlers[event]);
+        this.el.removeEventListener(event, handlers[event]);
       }
       if (handler) {
-        handler = handler.bind(el);
-        el.addEventListener(event, handler);
+        handler = handler.bind(this.vm);
+        this.el.addEventListener(event, handler);
         handlers[event] = handler;
       }
     },
-    unbind: function unbind(el, event, directive) {
-      if (directive.handlers) {
-        el.removeEventListener(event, directive.handlers[event]);
+    unbind: function unbind() {
+      var event = this.arg;
+      if (this.handlers) {
+        this.el.removeEventListener(event, this.handlers[event]);
       }
     }
   }
@@ -295,6 +307,29 @@ var Sarah = function () {
         }
       });
       return binding;
+    }
+
+    // lifecycle
+
+  }, {
+    key: "dump",
+    value: function dump() {
+      var data = {};
+      for (var key in this._bindings) {
+        data[key] = this._bindings[key].value;
+      }
+      return data;
+    }
+  }, {
+    key: "destroy",
+    value: function destroy() {
+      for (var key in this._bindings) {
+        this._bindings[key].directives.forEach(unbind);
+      }
+      this.el.parentNode.removeChild(this.el);
+      function unbind(directive) {
+        directive.unbind && directive.unbind();
+      }
     }
   }]);
 

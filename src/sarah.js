@@ -83,6 +83,24 @@ export default class Sarah {
     });
     return binding;
   }
+
+  // lifecycle
+  dump() {
+    const data = {};
+    for (let key in this._bindings) {
+      data[key] = this._bindings[key].value;
+    }
+    return data;
+  }
+  destroy() {
+    for (let key in this._bindings) {
+      this._bindings[key].directives.forEach(unbind);
+    }
+    this.el.parentNode.removeChild(this.el);
+    function unbind(directive) {
+      directive.unbind && directive.unbind();
+    }
+  }
 }
 
 // clone attributes, so they don't change

@@ -12,9 +12,10 @@
 <body>
   <div id="app">
     <p s-class-red="error" s-text="hello"></p>
+    <button s-on-click="changeMessage">+</button>
     <ul>
       <li s-repeat-todo="todos">
-        <span s-text="title"></span>
+        <span s-text="title" s-class-done="done"></span>
       </li>
     </ul>
   </div>
@@ -34,8 +35,9 @@
           }
         ],
         changeMessage: function () {
-          console.log('click')
-          app.scope.msg = 'hola'
+          vm.scope.todos.push({
+            title: `随机添加${Math.random().toString(36).slice(2, 8)}`
+          })
         }
       }
     })
