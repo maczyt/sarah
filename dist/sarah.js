@@ -20,6 +20,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var KEY_RE = /^[^\|]+/;
+var ARG_RE = /([^:]+):(.+)$/;
 var FILTERS_RE = /\|[^\|]+/g;
 
 var Directive = function () {
@@ -61,12 +62,15 @@ exports.default = {
     }
     var noprefix = attr.name.slice(prefix.length + 1);
     var argIndex = noprefix.indexOf("-");
-    var arg = argIndex === -1 ? null : noprefix.slice(argIndex + 1);
     var name = arg ? noprefix.slice(0, argIndex) : noprefix;
     var def = _directives2.default[name];
-    var key = attr.value.match(KEY_RE);
 
-    return def ? new Directive(def, attr, arg, key[0].trim()) : null;
+    var rawKey = attr.value.match(KEY_RE)[0];
+    var argMatch = rawKey.match(ARG_RE);
+    var key = argMatch ? argMatch[2].trim() : rawKey.trim();
+    var arg = argMatch ? argMatch[1].trim() : null;
+
+    return def ? new Directive(def, attr, arg, key.trim()) : null;
   }
 };
 
@@ -109,6 +113,24 @@ exports.default = {
     this.el.style.display = value ? "" : "none";
   },
 
+  model: {
+    bind: function bind() {
+      var _this2 = this;
+
+      this.change = function () {
+        _this2.vm.scope[_this2.key] = _this2.el.value;
+      };
+      this.el.addEventListener("keyup", this.change);
+    },
+    update: function update() {
+      var value = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "";
+
+      this.el.value = value;
+    },
+    unbind: function unbind() {
+      this.el.removeEventListener("keyup", this.change);
+    }
+  },
   repeat: {
     bind: function bind() {
       this.el["s-block"] = true;
@@ -120,12 +142,16 @@ exports.default = {
       this.childSarahs = [];
     },
     update: function update(collection) {
-      var _this2 = this;
+      var _this3 = this;
 
+      this.childSarahs.forEach(function (child) {
+        child.destroy();
+      });
+      this.childSarahs = [];
       this.collection = collection;
       (0, _watchArray2.default)(collection, this.mutate.bind(this));
       collection.forEach(function (item, i) {
-        _this2.childSarahs.push(_this2.buildItem(item, i));
+        _this3.childSarahs.push(_this3.buildItem(item, i));
       });
     },
     mutate: function mutate(mutation) {
@@ -365,7 +391,7 @@ exports.default = function (arr, callback) {
         args[_key] = arguments[_key];
       }
 
-      ArrayProto[method].apply(this, args);
+      // ArrayProto[method].apply(this, args);
       callback({
         event: method,
         args: args,

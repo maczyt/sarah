@@ -2,6 +2,7 @@ import Directives from "./directives";
 import Filters from "./filters";
 
 const KEY_RE = /^[^\|]+/;
+const ARG_RE = /([^:]+):(.+)$/;
 const FILTERS_RE = /\|[^\|]+/g;
 
 class Directive {
@@ -36,11 +37,14 @@ export default {
     }
     const noprefix = attr.name.slice(prefix.length + 1);
     const argIndex = noprefix.indexOf("-");
-    const arg = argIndex === -1 ? null : noprefix.slice(argIndex + 1);
     const name = arg ? noprefix.slice(0, argIndex) : noprefix;
     const def = Directives[name];
-    const key = attr.value.match(KEY_RE);
 
-    return def ? new Directive(def, attr, arg, key[0].trim()) : null;
+    const rawKey = attr.value.match(KEY_RE)[0];
+    const argMatch = rawKey.match(ARG_RE);
+    const key = argMatch ? argMatch[2].trim() : rawKey.trim();
+    const arg = argMatch ? argMatch[1].trim() : null;
+
+    return def ? new Directive(def, attr, arg, key.trim()) : null;
   }
 };

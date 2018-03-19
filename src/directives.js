@@ -20,6 +20,20 @@ export default {
   show(value) {
     this.el.style.display = value ? "" : "none";
   },
+  model: {
+    bind() {
+      this.change = () => {
+        this.vm.scope[this.key] = this.el.value;
+      };
+      this.el.addEventListener("keyup", this.change);
+    },
+    update(value = "") {
+      this.el.value = value;
+    },
+    unbind() {
+      this.el.removeEventListener("keyup", this.change);
+    }
+  },
   repeat: {
     bind() {
       this.el["s-block"] = true;
@@ -31,6 +45,10 @@ export default {
       this.childSarahs = [];
     },
     update(collection) {
+      this.childSarahs.forEach(child => {
+        child.destroy();
+      });
+      this.childSarahs = [];
       this.collection = collection;
       watchArray(collection, this.mutate.bind(this));
       collection.forEach((item, i) => {

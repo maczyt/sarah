@@ -12,7 +12,7 @@ const mutatorMethods = [
 export default (arr, callback) => {
   mutatorMethods.forEach(method => {
     arr[method] = function(...args) {
-      ArrayProto[method].apply(this, args);
+      // ArrayProto[method].apply(this, args);
       callback({
         event: method,
         args,
